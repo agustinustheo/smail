@@ -2,27 +2,35 @@
 using System.Collections.Generic;
 using System.Net.Mail;
 
-namespace SimpleMailCLI
+namespace smail
 {
-    public static class Mail
+    public class Mail
     {
-        public static void Send(List<string> recipients, string subject, string displayName, string body, bool enableSsl = true)
+        private readonly string _sender;
+        private readonly string _username;
+        private readonly string _password;
+        private readonly string _host;
+        private readonly int _port;
+
+        public Mail(string sender, string username, string password, string host, int port)
+        {
+            _sender = sender;
+            _username = username;
+            _password = password;
+            _host = host;
+            _port = port;
+        }
+
+        public void Send(List<string> recipients, string subject, string displayName, string body, bool enableSsl)
         {
             try
             {
-                // Get configuration values
-                var appConfig = new AppConfiguration();
-                int _port = appConfig.MailPort;
-                string _host = appConfig.MailHost;
-                string _sender = appConfig.MailUser;
-                string _password = appConfig.MailPassword;
-
                 // Initialize the SMTP host.
                 SmtpClient client = new SmtpClient(_host);
                 client.Port = _port;
                 client.DeliveryMethod = SmtpDeliveryMethod.Network;
                 client.UseDefaultCredentials = false;
-                System.Net.NetworkCredential credentials = new System.Net.NetworkCredential(_sender, _password);
+                System.Net.NetworkCredential credentials = new System.Net.NetworkCredential(_username, _password);
                 client.EnableSsl = enableSsl;
                 client.Credentials = credentials;
 

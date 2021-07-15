@@ -1,23 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SimpleMailCLI
+namespace smail
 {
     class Program
     {
         private static List<string> commands = new List<string>
         {
-            "-r",
+            "-f",
+            "-m",
+            "-h",
+            "-t",
             "-s",
-            "-d",
-            "-c"
+            "-p",
+            "-dn",
+            "-xu",
+            "-xp",
+            "-ssl",
         };
+
         static void Main(string[] args)
         {
-            string Recipient = "";
-            string Subject = "";
-            string DisplayName = "";
-            string Content = "";
+            string from = "";
+            string to = "";
+            string subject = "";
+            string displayName = "";
+            string content = "";
+            string host = "";
+            string username = "";
+            string password = "";
+            int port = 587;
+            bool enableSsl = true;
 
             try
             {
@@ -45,35 +58,94 @@ namespace SimpleMailCLI
 
                         switch (args[i])
                         {
-                            case "-r":
-                                Recipient = args[i + 1];
+                            case "-f":
+                                from = args[i + 1];
+                                break;
+                            case "-m":
+                                content = args[i + 1];
+                                break;
+                            case "-h":
+                                host = args[i + 1];
+                                break;
+                            case "-t":
+                                to = args[i + 1];
                                 break;
                             case "-s":
-                                Subject = args[i + 1];
+                                subject = args[i + 1];
                                 break;
-                            case "-d":
-                                DisplayName = args[i + 1];
+                            case "-p":
+                                if (!int.TryParse(args[i + 1], out port))
+                                {
+                                    throw new Exception("Invalid entry for flag -p");
+                                }
+                                port = Convert.ToInt32(args[i + 1]);
                                 break;
-                            case "-c":
-                                Content = args[i + 1];
+                            case "-dn":
+                                displayName = args[i + 1];
+                                break;
+                            case "-xu":
+                                username = args[i + 1];
+                                break;
+                            case "-xp":
+                                password = args[i + 1];
+                                break;
+                            case "-ssl":
+                                if(!bool.TryParse(args[i + 1], out enableSsl))
+                                {
+                                    throw new Exception("Invalid entry for flag -ssl");
+                                }
+                                enableSsl = Convert.ToBoolean(args[i + 1]);
                                 break;
                         }
                     }
                 }
 
-                if (!(string.IsNullOrEmpty(Recipient) || string.IsNullOrEmpty(Subject) ||
-                    string.IsNullOrEmpty(DisplayName) || string.IsNullOrEmpty(Content)))
+                if (Validate(from, to, subject, displayName, content, username, password, host))
                 {
-                    Mail.Send(new List<string>
+                    var mail = new Mail(from, username, password, host, port);
+                    mail.Send(new List<string>
                     {
-                        Recipient
-                    }, Subject, DisplayName, Content);
+                        to
+                    }, subject, displayName, content, enableSsl);
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
+        }
+
+        static bool Validate(string from, string to, string subject, string displayName, string content, string username, string password, string host)
+        {
+            if (string.IsNullOrEmpty(from))
+            {
+                return false;
+            }
+            if (string.IsNullOrEmpty(to))
+            {
+                return false;
+            }
+            if (string.IsNullOrEmpty(subject))
+            {
+                return false;
+            }
+            if (string.IsNullOrEmpty(displayName))
+            {
+                return false;
+            } 
+            if (string.IsNullOrEmpty(content))
+            {
+                return false;
+            }
+            if (string.IsNullOrEmpty(password))
+            {
+                return false;
+            }
+            if (string.IsNullOrEmpty(host))
+            {
+                return false;
+            }
+            return true;
         }
     }
 }
